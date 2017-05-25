@@ -73,8 +73,34 @@ int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
   return 0;
 }
 
+__global__  void broadcast_to_kernel(DLArrayHandle input_data, DLArrayHandle output_data, index_t input_n, index_t output_n) {
+   index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
+
+   if(idx < output_n)
+       output_data[idx] = input_data[idx % input_n];
+}
+
 int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
   /* TODO: Your code here */
+   index_t input_n = 1;
+   index_t output_n = 1;
+
+
+   for (int i = 0; i < input->dim; i++) {
+      input_n *= input->shape[i]; 
+   }
+
+   for (int i = 0; i < output->dim; i++) {
+      output_n *= output->shape[i]; 
+   }
+
+   const float *input_data = (const float *)input->data;
+   float *output_data = (float *)output->data;
+   int threadsPerBlock = 256;
+   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+   broadcast_to_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, input_n, output_n);
+  
   return 0;
 }
 
