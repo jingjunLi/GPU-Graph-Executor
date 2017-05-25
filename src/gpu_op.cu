@@ -55,13 +55,14 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
 __global__  void array_set_kernel(index_t n, float *data, float value) {
    index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
 
-   if(idx < n)
-       data[idx] = value;
+   if (idx < n) {
+        data[idx] = value;
+   }
 }
 
 int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
    index_t n = 1;
-   for (int i = 0; i < arr->dim; i++) {
+   for (int i = 0; i < arr->dim; ++i) {
       n *= arr->shape[i]; 
    }
     
@@ -76,21 +77,21 @@ int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
 __global__  void broadcast_to_kernel(DLArrayHandle input_data, DLArrayHandle output_data, index_t input_n, index_t output_n) {
    index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
 
-   if(idx < output_n)
+   if (idx < output_n) {
        output_data[idx] = input_data[idx % input_n];
+   }
 }
 
 int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
   /* TODO: Your code here */
    index_t input_n = 1;
-   index_t output_n = 1;
 
-
-   for (int i = 0; i < input->dim; i++) {
+   for (int i = 0; i < input->dim; ++i) {
       input_n *= input->shape[i]; 
    }
 
-   for (int i = 0; i < output->dim; i++) {
+   index_t output_n = 1;
+   for (int i = 0; i < output->dim; ++i) {
       output_n *= output->shape[i]; 
    }
 
@@ -104,8 +105,31 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
   return 0;
 }
 
+__global__  void reduce_sum_axis_zero(DLArrayHandle input_data, DLArrayHandle output_data, index_t m, index_t n) {
+   index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
+
+   if (idx < n) {
+       for (int i = 0; i < m; ++i) {
+           output_data[n] += input_data[n*i];  
+       }
+   }
+}
+
 int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
   /* TODO: Your code here */
+    
+   index_t axis_a = input->shape[0];
+   index_t axis_b = 1;
+   for (int i = 1; i < input->dim; i++) {
+      axis_b *= input->shape[i]; 
+   }
+
+   const float *input_data = (const float *)input->data;
+   float *output_data = (float *)output->data;
+   int threadsPerBlock = 256;
+   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+   reduce_sum_axis_zero<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, axis_a, axis_b);
   return 0;
 }
 
