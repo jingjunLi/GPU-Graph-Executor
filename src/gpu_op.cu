@@ -52,7 +52,24 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
   }
 }
 
+__global__  void array_set_kernel(index_t n, float *data, float value) {
+   index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
+
+   if(idx < n)
+       data[idx] = value;
+}
+
 int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
+   index_t n = 1;
+   for (int i = 0; i < arr->dim; i++) {
+      n *= arr->shape[i]; 
+   }
+    
+  float *data = (float *)arr->data;
+  int threadsPerBlock = 256;
+  int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+  array_set_kernel<<<blocksPerGrid, threadsPerBlock>>>(n, data, value);
   return 0;
 }
 
@@ -69,7 +86,9 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
 int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
                               const DLArrayHandle matB, DLArrayHandle output) {
   /* TODO: Your code here */
+
   return 0;
+
 }
 
 int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
