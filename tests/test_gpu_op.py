@@ -75,6 +75,7 @@ def test_matrix_elementwise_add_by_const():
     gpu_op.matrix_elementwise_add_by_const(arr_x, val, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(x + val, y, rtol=1e-5)
+    print("Test matrix elementwise add by const.")
 
 
 def test_matrix_elementwise_multiply():
@@ -188,4 +189,5 @@ if __name__ == '__main__':
         #test_array_set()
         #test_broadcast_to()
         #test_reduce_sum_axis_zero()
-        test_matrix_elementwise_add()
+        #test_matrix_elementwise_add()
+        test_matrix_elementwise_add_by_const()
