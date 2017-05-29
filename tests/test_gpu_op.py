@@ -62,6 +62,7 @@ def test_matrix_elementwise_add():
     gpu_op.matrix_elementwise_add(arr_x, arr_y, arr_z)
     z = arr_z.asnumpy()
     np.testing.assert_allclose(x + y, z, rtol=1e-5)
+    print("Test matrix elementwise add.")
 
 
 def test_matrix_elementwise_add_by_const():
@@ -186,4 +187,5 @@ def test_softmax_cross_entropy():
 if __name__ == '__main__':
         #test_array_set()
         #test_broadcast_to()
-        test_reduce_sum_axis_zero()
+        #test_reduce_sum_axis_zero()
+        test_matrix_elementwise_add()
