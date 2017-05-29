@@ -107,12 +107,13 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
   return 0;
 }
 
-__global__  void reduce_sum_axis_zero(float *input_data, float *output_data, index_t m, index_t n) {
+__global__  void reduce_sum_axis_zero(const float *input_data, float *output_data, index_t m, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
+       output_data[idx] = 0;
        for (int i = 0; i < m; ++i) {
-           output_data[n] += input_data[n*i];  
+           output_data[idx] += input_data[idx + n * i];  
        }
    }
 }
@@ -122,7 +123,7 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
     
    index_t axis_a = input->shape[0];
    index_t axis_b = 1;
-   for (int i = 1; i < input->ndim; i++) {
+   for (int i = 1; i < input->ndim; ++i) {
       axis_b *= input->shape[i]; 
    }
 
@@ -131,7 +132,7 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
    int threadsPerBlock = 256;
    int blocksPerGrid = (axis_b + threadsPerBlock - 1) / threadsPerBlock;
 
-    //reduce_sum_axis_zero<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, axis_a, axis_b);
+   reduce_sum_axis_zero<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, axis_a, axis_b);
   return 0;
 }
 

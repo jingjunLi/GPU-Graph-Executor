@@ -48,6 +48,7 @@ def test_reduce_sum_axis_zero():
         if abs((v - v_) / v_) > 1e-4:
             print(index, v, v_)
     np.testing.assert_allclose(np.sum(x, axis=0), y, rtol=1e-5)
+    print("Test reduce sum axis zero.")
 
 
 def test_matrix_elementwise_add():
@@ -184,5 +185,5 @@ def test_softmax_cross_entropy():
 
 if __name__ == '__main__':
         #test_array_set()
-        test_broadcast_to()
-        #test_reduce_sum_axis_zero()
+        #test_broadcast_to()
+        test_reduce_sum_axis_zero()
