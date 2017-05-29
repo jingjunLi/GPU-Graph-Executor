@@ -9,11 +9,14 @@ def test_array_set():
     arr_x = ndarray.empty(shape, ctx=ctx)
     gpu_op.array_set(arr_x, 1.)
     x = arr_x.asnumpy()
+    #print(x)
     np.testing.assert_allclose(np.ones(shape), x)
     # zeroslike
     gpu_op.array_set(arr_x, 0.)
     x = arr_x.asnumpy()
     np.testing.assert_allclose(np.zeros(shape), x)
+    print("Test array set.")
+
 
 
 def test_broadcast_to():
@@ -26,6 +29,7 @@ def test_broadcast_to():
     gpu_op.broadcast_to(arr_x, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(np.broadcast_to(x, to_shape), y)
+    print("Test broadcast to.")
 
 
 def test_reduce_sum_axis_zero():
@@ -178,6 +182,7 @@ def test_softmax_cross_entropy():
     np.testing.assert_allclose(cross_entropy, out, rtol=1e-5)
 
 
-    if __name__ == '__main__':
+if __name__ == '__main__':
         #test_array_set()
         test_broadcast_to()
+        #test_reduce_sum_axis_zero()

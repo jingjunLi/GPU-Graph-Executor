@@ -53,29 +53,32 @@ __global__ void matrix_softmax_cross_entropy_kernel(int nrow, int ncol,
 }
 
 __global__  void array_set_kernel(index_t n, float *data, float value) {
-   index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
         data[idx] = value;
+ //       if (idx  % 100 == 0) {
+ //           printf("%f", data[idx]);
+ //       }
    }
 }
 
 int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
    index_t n = 1;
-   for (int i = 0; i < arr->dim; ++i) {
+   for (int i = 0; i < arr->ndim; ++i) {
       n *= arr->shape[i]; 
    }
     
   float *data = (float *)arr->data;
-  int threadsPerBlock = 256;
+  int threadsPerBlock = 512;
   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
   array_set_kernel<<<blocksPerGrid, threadsPerBlock>>>(n, data, value);
   return 0;
 }
 
-__global__  void broadcast_to_kernel(DLArrayHandle input_data, DLArrayHandle output_data, index_t input_n, index_t output_n) {
-   index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
+__global__  void broadcast_to_kernel(const float *input_data, float *output_data, index_t input_n, index_t output_n) {
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < output_n) {
        output_data[idx] = input_data[idx % input_n];
@@ -86,27 +89,27 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
   /* TODO: Your code here */
    index_t input_n = 1;
 
-   for (int i = 0; i < input->dim; ++i) {
+   for (int i = 0; i < input->ndim; ++i) {
       input_n *= input->shape[i]; 
    }
 
    index_t output_n = 1;
-   for (int i = 0; i < output->dim; ++i) {
+   for (int i = 0; i < output->ndim; ++i) {
       output_n *= output->shape[i]; 
    }
 
    const float *input_data = (const float *)input->data;
    float *output_data = (float *)output->data;
    int threadsPerBlock = 256;
-   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+   int blocksPerGrid = (input_n + threadsPerBlock - 1) / threadsPerBlock;
 
    broadcast_to_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, input_n, output_n);
   
   return 0;
 }
 
-__global__  void reduce_sum_axis_zero(DLArrayHandle input_data, DLArrayHandle output_data, index_t m, index_t n) {
-   index_t idx = blockDim.x * blockIdx.y + blockIdx.x;
+__global__  void reduce_sum_axis_zero(float *input_data, float *output_data, index_t m, index_t n) {
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
        for (int i = 0; i < m; ++i) {
@@ -120,16 +123,16 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
     
    index_t axis_a = input->shape[0];
    index_t axis_b = 1;
-   for (int i = 1; i < input->dim; i++) {
+   for (int i = 1; i < input->ndim; i++) {
       axis_b *= input->shape[i]; 
    }
 
    const float *input_data = (const float *)input->data;
    float *output_data = (float *)output->data;
    int threadsPerBlock = 256;
-   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+   int blocksPerGrid = (axis_b + threadsPerBlock - 1) / threadsPerBlock;
 
-   reduce_sum_axis_zero<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, axis_a, axis_b);
+    //reduce_sum_axis_zero<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, axis_a, axis_b);
   return 0;
 }
 
