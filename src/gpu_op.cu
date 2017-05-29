@@ -101,10 +101,9 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
    const float *input_data = (const float *)input->data;
    float *output_data = (float *)output->data;
    int threadsPerBlock = 256;
-   int blocksPerGrid = (input_n + threadsPerBlock - 1) / threadsPerBlock;
+   int blocksPerGrid = (output_n + threadsPerBlock - 1) / threadsPerBlock;
 
    broadcast_to_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, input_n, output_n);
-  
   return 0;
 }
 
