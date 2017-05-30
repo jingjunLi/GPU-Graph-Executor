@@ -172,6 +172,7 @@ def test_softmax():
     gpu_op.softmax(arr_x, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(autodiff.softmax_func(x), y, rtol=1e-5)
+    print("Test softmax.")
 
 
 def test_softmax_cross_entropy():
@@ -200,4 +201,5 @@ if __name__ == '__main__':
         #test_matrix_elementwise_multiply_by_const()
         #test_matrix_multiply()
         #test_relu()
-        test_relu_gradient()
+        #test_relu_gradient()
+        test_softmax()
