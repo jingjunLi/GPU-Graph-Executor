@@ -311,17 +311,31 @@ int DLGpuRelu(const DLArrayHandle input, DLArrayHandle output) {
   return 0;
 }
 
-__global__  void matrix_elementwise_add_by_const(const float *input_data, const float val, float *output_data, index_t n) {
+__global__  void relu_gradient_kernel(const float *input_data, const float *in_grad_data,
+                                      float *output_data, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
-        output_data[idx] = input_data[idx] + val;  
+       output_data[idx] = ( input_data[idx] > 0 ) ? in_grad_data[idx] : 0;
    }
 }
 
 int DLGpuReluGradient(const DLArrayHandle input, const DLArrayHandle in_grad,
                       DLArrayHandle output) {
   /* TODO: Your code here */
+   index_t n = 1;
+   for (int i = 0; i < input->ndim; ++i) {
+      n *= input->shape[i]; 
+   }
+    
+  const float *input_data = (const float *)input->data;
+  const float *in_grad_data = (const float *)in_grad->data;
+  float *output_data = (float *)output->data;
+  int threadsPerBlock = 512;
+  int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+  relu_gradient_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, in_grad_data,
+                                                           output_data, n);
   return 0;
 }
 

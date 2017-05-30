@@ -191,12 +191,13 @@ def test_softmax_cross_entropy():
 
 
 if __name__ == '__main__':
-        test_array_set()
-        test_broadcast_to()
-        test_reduce_sum_axis_zero()
-        test_matrix_elementwise_add()
-        test_matrix_elementwise_add_by_const()
-        test_matrix_elementwise_multiply()
-        test_matrix_elementwise_multiply_by_const()
-        test_matrix_multiply()
-        test_relu()
+        #test_array_set()
+        #test_broadcast_to()
+        #test_reduce_sum_axis_zero()
+        #test_matrix_elementwise_add()
+        #test_matrix_elementwise_add_by_const()
+        #test_matrix_elementwise_multiply()
+        #test_matrix_elementwise_multiply_by_const()
+        #test_matrix_multiply()
+        #test_relu()
+        test_relu_gradient()
