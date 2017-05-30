@@ -57,9 +57,6 @@ __global__  void array_set_kernel(index_t n, float *data, float value) {
 
    if (idx < n) {
         data[idx] = value;
- //       if (idx  % 100 == 0) {
- //           printf("%f", data[idx]);
- //       }
    }
 }
 
@@ -77,7 +74,8 @@ int DLGpuArraySet(DLArrayHandle arr, float value) { /* TODO: Your code here */
   return 0;
 }
 
-__global__  void broadcast_to_kernel(const float *input_data, float *output_data, index_t input_n, index_t output_n) {
+__global__  void broadcast_to_kernel(const float *input_data, float *output_data, 
+                                     index_t input_n, index_t output_n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < output_n) {
@@ -103,11 +101,13 @@ int DLGpuBroadcastTo(const DLArrayHandle input, DLArrayHandle output) {
    int threadsPerBlock = 256;
    int blocksPerGrid = (output_n + threadsPerBlock - 1) / threadsPerBlock;
 
-   broadcast_to_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, input_n, output_n);
+   broadcast_to_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, 
+                                                           input_n, output_n);
   return 0;
 }
 
-__global__  void reduce_sum_axis_zero(const float *input_data, float *output_data, index_t m, index_t n) {
+__global__  void reduce_sum_axis_zero_kernel(const float *input_data, float *output_data, 
+                                             index_t m, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
@@ -132,12 +132,14 @@ int DLGpuReduceSumAxisZero(const DLArrayHandle input, DLArrayHandle output) {
    int threadsPerBlock = 256;
    int blocksPerGrid = (axis_b + threadsPerBlock - 1) / threadsPerBlock;
 
-   reduce_sum_axis_zero<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, axis_a, axis_b);
+   reduce_sum_axis_zero_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data,
+                                                                   axis_a, axis_b);
   return 0;
 }
 
 
-__global__  void matrix_elementwise_add(const float *matA_data, const float *matB_data, float *output_data, index_t n) {
+__global__  void matrix_elementwise_add_kernel(const float *matA_data, const float *matB_data, 
+                                               float *output_data, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
@@ -158,11 +160,13 @@ int DLGpuMatrixElementwiseAdd(const DLArrayHandle matA,
   int threadsPerBlock = 512;
   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
-  matrix_elementwise_add<<<blocksPerGrid, threadsPerBlock>>>(matA_data, matB_data, output_data, n);
+  matrix_elementwise_add_kernel<<<blocksPerGrid, threadsPerBlock>>>(matA_data, matB_data,
+                                                                    output_data, n);
   return 0;
 }
 
-__global__  void matrix_elementwise_add_by_const(const float *input_data, const float val, float *output_data, index_t n) {
+__global__  void matrix_elementwise_add_by_const_kernel(const float *input_data, const float val,
+                                                        float *output_data, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
@@ -183,11 +187,13 @@ int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
   int threadsPerBlock = 512;
   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
-  matrix_elementwise_add_by_const<<<blocksPerGrid, threadsPerBlock>>>(input_data, val, output_data, n);
+  matrix_elementwise_add_by_const_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, val, 
+                                                                             output_data, n);
   return 0;
 }
 
-__global__  void matrix_elementwise_multiply(const float *matA_data, const float *matB_data, float *output_data, index_t n) {
+__global__  void matrix_elementwise_multiply_kernel(const float *matA_data, const float *matB_data, 
+                                                    float *output_data, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
@@ -210,11 +216,13 @@ int DLGpuMatrixElementwiseMultiply(const DLArrayHandle matA,
   int threadsPerBlock = 512;
   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
-  matrix_elementwise_multiply<<<blocksPerGrid, threadsPerBlock>>>(matA_data, matB_data, output_data, n);
+  matrix_elementwise_multiply_kernel<<<blocksPerGrid, threadsPerBlock>>>(matA_data, matB_data,
+                                                                         output_data, n);
   return 0;
 }
 
-__global__  void matrix_elementwise_multiply_by_const(const float *input_data, const float val, float *output_data, index_t n) {
+__global__  void matrix_elementwise_multiply_by_const_kernel(const float *input_data, const float val, 
+                                                             float *output_data, index_t n) {
    index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
 
    if (idx < n) {
@@ -235,7 +243,8 @@ int DLGpuMatrixMultiplyByConst(const DLArrayHandle input, float val,
   int threadsPerBlock = 512;
   int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
-  matrix_elementwise_multiply_by_const<<<blocksPerGrid, threadsPerBlock>>>(input_data, val, output_data, n);
+  matrix_elementwise_multiply_by_const_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, val,
+                                                                                  output_data, n);
   return 0;
 }
 
@@ -245,12 +254,69 @@ int DLGpuMatrixMultiply(const DLArrayHandle matA, bool transposeA,
   /* TODO: Your code here */
   // Hint: use cublas
   // cublas assume matrix is column major
+    cublasHandle_t handle;
+    cublasStatus_t stat = cublasCreate(&handle);
+    if (stat != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS initialization failed\n");
+    }
+    cublasOperation_t transa = transposeA ? CUBLAS_OP_T : CUBLAS_OP_N;
+    cublasOperation_t transb = transposeB ? CUBLAS_OP_T : CUBLAS_OP_N;
+
+    int m = transposeB ? matB->shape[0] : matB->shape[1];
+    int n = transposeA ? matA->shape[1] : matA->shape[0];
+    int k = transposeA ? matA->shape[0] : matA->shape[1];
+    
+    const float *matA_data = (const float *)matA->data;
+    const float *matB_data = (const float *)matB->data;
+    float *matC_data = (float *)matC->data;
+
+    float alpha = 1.0;
+    float beta = 0.0;
+    stat = cublasSgemm(handle, transb, transa, m, n, k, &alpha, 
+                       matB_data, matB->shape[1], matA_data, matA->shape[1], 
+                       &beta, matC_data, m);
+    
+    if (stat != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS kernel execution error.\n");
+    }
+
+    stat = cublasDestroy(handle);
+    if (stat != CUBLAS_STATUS_SUCCESS) {
+        printf("CUBLAS shutdown error.\n");
+    }
   return 0;
+}
+
+__global__  void relu_kernel(const float *input_data, float *output_data, index_t n) {
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+   if (idx < n) {
+       output_data[idx] = ( input_data[idx] > 0 ) ? input_data[idx] : 0;
+   }
 }
 
 int DLGpuRelu(const DLArrayHandle input, DLArrayHandle output) {
   /* TODO: Your code here */
+   index_t n = 1;
+   for (int i = 0; i < input->ndim; ++i) {
+      n *= input->shape[i]; 
+   }
+    
+  const float *input_data = (const float *)input->data;
+  float *output_data = (float *)output->data;
+  int threadsPerBlock = 512;
+  int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+  relu_kernel<<<blocksPerGrid, threadsPerBlock>>>(input_data, output_data, n);
   return 0;
+}
+
+__global__  void matrix_elementwise_add_by_const(const float *input_data, const float val, float *output_data, index_t n) {
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+   if (idx < n) {
+        output_data[idx] = input_data[idx] + val;  
+   }
 }
 
 int DLGpuReluGradient(const DLArrayHandle input, const DLArrayHandle in_grad,

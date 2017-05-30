@@ -134,6 +134,7 @@ def test_matrix_multiply():
     z = arr_z.asnumpy()
     np.testing.assert_allclose(np.dot(np.transpose(x), np.transpose(y)), z,
                                rtol=1e-5)
+    print("Test matrix multiply.")
 
 
 def test_relu():
@@ -145,6 +146,7 @@ def test_relu():
     gpu_op.relu(arr_x, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(np.maximum(x, 0).astype(np.float32), y)
+    print("Test relu.")
 
 
 def test_relu_gradient():
@@ -158,6 +160,7 @@ def test_relu_gradient():
     gpu_op.relu_gradient(arr_x, arr_grad_x, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(((x > 0) * grad_x).astype(np.float32), y)
+    print("Test relu gradient.")
 
 
 def test_softmax():
@@ -188,10 +191,12 @@ def test_softmax_cross_entropy():
 
 
 if __name__ == '__main__':
-        #test_array_set()
-        #test_broadcast_to()
-        #test_reduce_sum_axis_zero()
-        #test_matrix_elementwise_add()
-        #test_matrix_elementwise_add_by_const()
+        test_array_set()
+        test_broadcast_to()
+        test_reduce_sum_axis_zero()
+        test_matrix_elementwise_add()
+        test_matrix_elementwise_add_by_const()
         test_matrix_elementwise_multiply()
         test_matrix_elementwise_multiply_by_const()
+        test_matrix_multiply()
+        test_relu()
