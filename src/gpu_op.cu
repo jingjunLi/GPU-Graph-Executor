@@ -187,16 +187,55 @@ int DLGpuMatrixElementwiseAddByConst(const DLArrayHandle input, float val,
   return 0;
 }
 
+__global__  void matrix_elementwise_multiply(const float *matA_data, const float *matB_data, float *output_data, index_t n) {
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+   if (idx < n) {
+        output_data[idx] = matA_data[idx] * matB_data[idx];  
+   }
+}
+
 int DLGpuMatrixElementwiseMultiply(const DLArrayHandle matA,
                                    const DLArrayHandle matB,
                                    DLArrayHandle output) {
   /* TODO: Your code here */
+   index_t n = 1;
+   for (int i = 0; i < matA->ndim; ++i) {
+      n *= matA->shape[i]; 
+   }
+    
+  const float *matA_data = (const float *)matA->data;
+  const float *matB_data = (const float *)matB->data;
+  float *output_data = (float *)output->data;
+  int threadsPerBlock = 512;
+  int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+  matrix_elementwise_multiply<<<blocksPerGrid, threadsPerBlock>>>(matA_data, matB_data, output_data, n);
   return 0;
+}
+
+__global__  void matrix_elementwise_multiply_by_const(const float *input_data, const float val, float *output_data, index_t n) {
+   index_t idx = blockDim.x * blockIdx.x + threadIdx.x;
+
+   if (idx < n) {
+        output_data[idx] = input_data[idx] * val;  
+   }
 }
 
 int DLGpuMatrixMultiplyByConst(const DLArrayHandle input, float val,
                                DLArrayHandle output) {
   /* TODO: Your code here */
+   index_t n = 1;
+   for (int i = 0; i < input->ndim; ++i) {
+      n *= input->shape[i]; 
+   }
+    
+  const float *input_data = (const float *)input->data;
+  float *output_data = (float *)output->data;
+  int threadsPerBlock = 512;
+  int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
+
+  matrix_elementwise_multiply_by_const<<<blocksPerGrid, threadsPerBlock>>>(input_data, val, output_data, n);
   return 0;
 }
 

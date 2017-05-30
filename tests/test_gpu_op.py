@@ -89,6 +89,7 @@ def test_matrix_elementwise_multiply():
     gpu_op.matrix_elementwise_multiply(arr_x, arr_y, arr_z)
     z = arr_z.asnumpy()
     np.testing.assert_allclose(x * y, z, rtol=1e-5)
+    print("Test matrix elementwise multiply.")
 
 
 def test_matrix_elementwise_multiply_by_const():
@@ -101,6 +102,7 @@ def test_matrix_elementwise_multiply_by_const():
     gpu_op.matrix_elementwise_multiply_by_const(arr_x, val, arr_y)
     y = arr_y.asnumpy()
     np.testing.assert_allclose(x * val, y, rtol=1e-5)
+    print("Test matrix elementwise multiply by const.")
 
 
 def test_matrix_multiply():
@@ -190,4 +192,6 @@ if __name__ == '__main__':
         #test_broadcast_to()
         #test_reduce_sum_axis_zero()
         #test_matrix_elementwise_add()
-        test_matrix_elementwise_add_by_const()
+        #test_matrix_elementwise_add_by_const()
+        test_matrix_elementwise_multiply()
+        test_matrix_elementwise_multiply_by_const()
