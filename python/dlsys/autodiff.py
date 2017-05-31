@@ -657,6 +657,13 @@ class Executor(object):
         feed_shapes: node->shapes mapping for feed_dict nodes.
         """
         """TODO: Your code here"""
+        self.node_to_arr_map = dict()
+
+        for node in self.topo_order:
+            if node in feed_shapes:
+                continue
+            shape = self.node_to_shape_map[node] 
+            self.node_to_arr_map[node] = ndarray.empty(shape, ctx=self.ctx)
 
     def run(self, feed_dict, convert_to_numpy_ret_vals=False):
         """
